@@ -1,0 +1,9 @@
+enum Colores
+    ROJO = 100,  # 100
+    VERDE, # 101
+    AZUL   # 3
+end
+
+local color1 = Colores.VERDE
+
+info(color1)
