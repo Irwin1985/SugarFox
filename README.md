@@ -187,7 +187,7 @@ func imprimirDatos(toDatos)
     end
 
     # Imprimir los datos
-    for k, v in datos
+    for k, v in toDatos
         print(k, v)
     end
 end
