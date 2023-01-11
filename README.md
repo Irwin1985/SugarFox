@@ -101,4 +101,106 @@ print(precios["Leche desnatada"]) # 0.70
 for i in 10
     print(i)
 end
+
+# Imprime el índice y el valor de un array
+local dias = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado", "Domingo"]
+for i, v in dias
+    print(i, v)
+end
+
+# Imprime las claves y los valores de un diccionario
+local datos = {
+    "nombre": "Pedro",
+    "apellido": "Peres",
+    "edad": 37
+}
+
+for k, v in datos
+    print(k, v)
+end
+
+```
+
+### While Loop
+
+```Ruby
+local i = 1
+
+while i < 10
+    print(i)
+    i += 1
+end
+```
+
+### Do While Loop
+
+```Ruby
+local i = 1
+
+do
+    print(i)
+    i += 1
+while i < 10
+```
+
+## Condicional If
+
+```Ruby
+local verdad = true
+
+if verdad
+    print("Verdad")
+else
+    print("Falso")
+end
+```
+
+## Funciones
+```Ruby
+print(Sumar(5, 10))
+
+func Sumar(x, y)
+    return x + y
+end
+```
+
+## Guardias
+```Swift
+local loDatos = {
+    "nombre": "Pedro",
+    "apellido": "Peres",
+    "edad": 37
+}
+
+imprimirDatos(loDatos)
+
+"""
+Función que imprime los datos de un diccionario
+NOTA: el diccionario debe tener una clave llamada direccion
+      o de lo contrario no se imprime nada.
+      para esta validación usamos un guardia.
+"""
+func imprimirDatos(toDatos)
+    guard toDatos["direccion"] else
+        print("Faltan datos")
+        return
+    end
+
+    # Imprimir los datos
+    for k, v in datos
+        print(k, v)
+    end
+end
+```
+
+## Enumerables
+```Swift
+enum Colores
+    ROJO,       # toma 1 por defecto a menos que se especifique un valor.
+    VERDE = 15, # explícitamente se ha especificado el valor 15.
+    AMARILLO    # su valor automáticamente es 16
+end
+
+local miColor = Colores.AMARILLO
+print(miColor) # 16
 ```
