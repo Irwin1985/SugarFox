@@ -1,9 +1,17 @@
-enum Colores
-    ROJO = 100,  # 100
-    VERDE, # 101
-    AZUL   # 3
+class Persona
+
+    func init(nombre, edad)
+        this.nombre = nombre
+        this.edad = edad
+    end
 end
 
-local color1 = Colores.VERDE
+class Gerente as Persona
+    func init(nombre, edad, departamento)
+        dodefault(nombre, edad)
+        this.departamento = departamento
+    end
+end
 
-info(color1)
+local pepe = new Gerente("Gonzalo", 35, "Ventas")
+info(pepe.departamento)

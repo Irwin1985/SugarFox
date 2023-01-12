@@ -125,42 +125,88 @@ Define Class Interpreter As Custom
 	Endfunc
 
 	Function visitClassNodeStmt(toStmt)
-		LOCAL lcOutput, lcHeader, i, lcClassBody, lcProperties, lparseFields
-		lcProperties = ''
-		lcClassBody = ''
-		lcHeader = 'DEFINE CLASS ' + toStmt.oName.lexeme + ' AS '
-		If !Isnull(toStmt.oSuperclass)
-			lcHeader = lcHeader + toStmt.oSuperclass.oName		
-		Else
-			lcHeader = lcHeader + 'CUSTOM' && all base classes will inherit from Custom
-		Endif		
+		Local lcTemplate, lcClassName, lcClassBase, lcProperties, lcMethods, loMethod, i, loParam, loStmt
+		Store '' TO lcTemplate, lcClassName, lcClassBase, lcProperties, lcMethods
 
+		* Class Name
+		lcClassName = toStmt.oName.lexeme
+		
+		* Class Base inheritance
+		If !Isnull(toStmt.oSuperclass)
+			lcClassBase = toStmt.oSuperclass.oName.lexeme
+		Else
+			lcClassBase = 'CUSTOM' && all base classes will inherit from Custom
+		EndIf
+		
+		* Class methods
 		For Each loMethod In toStmt.oMethods
-			lcClassBody = lcClassBody + CRLF + 'FUNCTION ' + loMethod.oName.lexeme + '('
+			lcMethods = lcMethods + CRLF + 'FUNCTION ' + loMethod.oName.lexeme + '('
 			i = 0
 			For each loParam in loMethod.oParams
 				i = i + 1
 				If i > 1
-					lcClassBody = lcClassBody + ', '
+					lcMethods = lcMethods + ', '
 				EndIf
-				lcClassBody = lcClassBody + loParam.lexeme
+				lcMethods = lcMethods + loParam.lexeme
 			EndFor
-			lcClassBody = lcClassBody + ')'
-			If loMethod.oName.lexeme == 'init'
-				For each loStmt in loMethod.oBody
+			lcMethods = lcMethods + ')'
+			If loMethod.oName.lexeme == 'init'				
+				For each loStmt in loMethod.oBody.oStatements
 					if loStmt.Class == "Expression" and loStmt.oExpression.Class == "Set"
 						lcProperties = lcProperties + loStmt.oExpression.oName.lexeme + ' = .null.' + CRLF
 					EndIf
 				EndFor
 			EndIf
-			lcClassBody = lcClassBody + CRLF + this.executeBlock(loMethod.oBody) + CRLF
-			lcClassBody = lcClassBody + 'ENDFUNC' + CRLF
-		Endfor
+			lcMethods = lcMethods + CRLF + this.execute(loMethod.oBody) + CRLF
+			lcMethods = lcMethods + 'ENDFUNC' + CRLF
+		EndFor
 
-		lcOutput = lcHeader + CRLF + lcProperties + lcClassBody + CRLF + 'ENDDEFINE' + CRLF
-		this.cClassList = this.cClassList + lcOutput
+		* Final template					
+		Text to lcTemplate noshow pretext 7 textmerge
+			Define Class <<lcClassName>> AS <<lcClassBase>>
+				<<lcProperties>>
+				<<lcMethods>>
+			enddefine
+		EndText
+		this.cClassList = lcTemplate + CRLF + this.cClassList + CRLF
+		Return ''		
 		
-		RETURN ''
+*!*			LOCAL lcOutput, lcHeader, i, lcClassBody, lcProperties, lparseFields
+*!*			lcProperties = ''
+*!*			lcClassBody = ''
+*!*			lcHeader = 'DEFINE CLASS ' + toStmt.oName.lexeme + ' AS '
+*!*			If !Isnull(toStmt.oSuperclass)
+*!*				lcHeader = lcHeader + toStmt.oSuperclass.oName		
+*!*			Else
+*!*				lcHeader = lcHeader + 'CUSTOM' && all base classes will inherit from Custom
+*!*			Endif		
+
+*!*			For Each loMethod In toStmt.oMethods
+*!*				lcClassBody = lcClassBody + CRLF + 'FUNCTION ' + loMethod.oName.lexeme + '('
+*!*				i = 0
+*!*				For each loParam in loMethod.oParams
+*!*					i = i + 1
+*!*					If i > 1
+*!*						lcClassBody = lcClassBody + ', '
+*!*					EndIf
+*!*					lcClassBody = lcClassBody + loParam.lexeme
+*!*				EndFor
+*!*				lcClassBody = lcClassBody + ')'
+*!*				If loMethod.oName.lexeme == 'init'
+*!*					For each loStmt in loMethod.oBody
+*!*						if loStmt.Class == "Expression" and loStmt.oExpression.Class == "Set"
+*!*							lcProperties = lcProperties + loStmt.oExpression.oName.lexeme + ' = .null.' + CRLF
+*!*						EndIf
+*!*					EndFor
+*!*				EndIf
+*!*				lcClassBody = lcClassBody + CRLF + this.executeBlock(loMethod.oBody) + CRLF
+*!*				lcClassBody = lcClassBody + 'ENDFUNC' + CRLF
+*!*			Endfor
+
+*!*			lcOutput = lcHeader + CRLF + lcProperties + lcClassBody + CRLF + 'ENDDEFINE' + CRLF
+*!*			this.cClassList = this.cClassList + lcOutput
+*!*			
+*!*			RETURN ''
 	Endfunc
 
 	Function visitExpressionStmt(toStmt)
@@ -181,8 +227,8 @@ Define Class Interpreter As Custom
 		EndFor
 		lcOutput = lcOutput + ')'
 		lcOutput = lcOutput + CRLF + this.executeBlock(toStmt.oBody.oStatements) + CRLF
-		lcOutput = lcOutput + 'ENDFUNC' + CRLF
-		this.cFunctionList = this.cFunctionList +  lcOutput
+		lcOutput = lcOutput + 'ENDFUNC'
+		this.cFunctionList = lcOutput + CRLF + this.cFunctionList + CRLF
 		
 		RETURN ''
 	Endfunc
@@ -264,7 +310,7 @@ Define Class Interpreter As Custom
 				<<lcElements>>				
 			ENDDEFINE
 		EndText
-		this.cClassList = this.cClassList + lcTemplate + CRLF
+		this.cClassList = lcTemplate + CRLF + this.cClassList + CRLF
 		
 		Text to lcOutput noshow pretext 7 textmerge
 			Local <<toStmt.oName.lexeme>>
@@ -561,14 +607,7 @@ Define Class Interpreter As Custom
 		lcClassDefinition = lcClassDefinition + this.executeBlock(toExpr.oBody)
 		lcClassDefinition = lcClassDefinition + Space(4) + 'ENDFUNC' + CRLF
 		lcClassDefinition = lcClassDefinition + 'ENDDEFINE' + CRLF
-		this.cClassList = this.cClassList + lcClassDefinition
-*!*			Local lcOutput
-*!*			Text to lcOutput noshow pretext 7 textmerge
-*!*				Public go<<lcClassName>>
-*!*				go<<lcClassName>> = CreateObject("<<lcClassName>>")			
-*!*			EndText
-*!*			this.cInitialization = this.cInitialization + lcOutput
-*!*			Return '[go' + lcClassName + '.execute(:PARAMS)]'
+		this.cClassList = lcClassDefinition + CRLF + this.cClassList + CRLF
 		Return 'newSugarFoxFunctionExpr("' + lcClassName + '")'
 	EndFunc
 	
